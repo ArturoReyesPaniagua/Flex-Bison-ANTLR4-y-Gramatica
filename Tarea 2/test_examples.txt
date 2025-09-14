@@ -1,0 +1,71 @@
+# Archivo de pruebas para la Calculadora Científica
+# Este archivo contiene ejemplos de expresiones para probar todas las funcionalidades
+
+# === OPERACIONES ARITMÉTICAS BÁSICAS ===
+15 / 4
+15.0 / 4
+2 + 3 * 4
+(2 + 3) * 4
+10 % 3
+20 / 5 * 2
+
+# === NÚMEROS NEGATIVOS Y UNARIOS ===
+-10 + 5
+2 * -3
+-(5 - 2)
+-(-5)
++-3
+-+3
+
+# === FUNCIONES TRIGONOMÉTRICAS ===
+sin(PI / 2)
+cos(0)
+tan(PI / 4)
+sin(PI / 6)
+cos(PI / 3)
+
+# === FUNCIONES LOGARÍTMICAS ===
+log(E)
+log(E * E)
+log10(100)
+log10(1000)
+log(1)
+
+# === OTRAS FUNCIONES MATEMÁTICAS ===
+sqrt(25)
+sqrt(16) + sqrt(9)
+pow(2, 3)
+pow(3, 2)
+sqrt(25) + pow(2, 3)
+
+# === CONSTANTES PREDEFINIDAS ===
+2 * PI
+E + 1
+PI / 2
+E * E
+
+# === EXPRESIONES COMPLEJAS ===
+(3.14159 + 2 * sin(PI/4)) / sqrt(9)
+2 * (3 + 4) - sqrt(pow(5, 2))
+log(E) + sqrt(4) * pow(2, 3)
+sin(PI/2) + cos(0) + tan(PI/4)
+
+# === CASOS DE ERROR SINTÁCTICO ===
+# Descomentar para probar errores:
+# 2 + * 3
+# sin(5)
+# pow(2
+# sqrt 4
+# 2 +/ 3
+
+# === CASOS DE ERROR SEMÁNTICO ===
+# Descomentar para probar errores:
+# 5 / 0
+# log(-5)
+# sqrt(-4)
+# 10 % 0
+# log10(-1)
+
+# === COMANDOS DE CONTROL ===
+# exit
+# quit
