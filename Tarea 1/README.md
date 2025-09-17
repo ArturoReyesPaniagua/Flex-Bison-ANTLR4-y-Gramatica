@@ -33,7 +33,7 @@ Este proyecto está dividido en dos partes principales:
 ```bash
 flex scanner01.l
 gcc lex.yy.c -o analizador01 -lfl
-./analizador01 novela.txt
+./analizador01  quijote.txt
 ```
 
 ### Ejercicio 2: Encriptador César (`scanner02.l`)
@@ -49,7 +49,7 @@ gcc lex.yy.c -o analizador01 -lfl
 ```bash
 flex scanner02.l
 gcc lex.yy.c -o encriptador -lfl
-./encriptador archivo_entrada.txt archivo_salida.txt
+./Analizador02 archivo_entrada.txt archivo_salida.txt
 ```
 
 ### Ejercicio 3: Desencriptador César (`scanner03.l`)
@@ -64,7 +64,7 @@ gcc lex.yy.c -o encriptador -lfl
 ```bash
 flex scanner03.l
 gcc lex.yy.c -o desencriptador -lfl
-./desencriptador archivo_encriptado.txt archivo_original.txt
+./Analizador03 archivo_encriptado.txt archivo_original.txt
 ```
 
 ### Ejercicio 4: Copiador de Archivos (`scanner04.l`)
@@ -75,7 +75,7 @@ gcc lex.yy.c -o desencriptador -lfl
 ```bash
 flex scanner04.l
 gcc lex.yy.c -o copiador -lfl
-./copiador archivo_entrada.txt archivo_salida.txt
+./Analizador04 archivo_entrada.txt archivo_salida.txt
 ```
 
 ### Ejercicio 5: Contador de Palabras (`scanner05.l`)
@@ -90,7 +90,7 @@ gcc lex.yy.c -o copiador -lfl
 ```bash
 flex scanner05.l
 gcc lex.yy.c -o contador -lfl
-./contador archivo.txt
+./Analizador05 archivo.txt
 ```
 
 ---

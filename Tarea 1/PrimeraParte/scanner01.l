@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
            "viii) ¿Cuál es el adverbio de tiempo más frecuente?\n\n");
 
     if (argc > 1){
-        FILE *f = fopen(argv[1], "r");
+        FILE *f = fopen(quijote.txt, "r");
         if (!f){
             perror("Error abriendo archivo");
             return 1;

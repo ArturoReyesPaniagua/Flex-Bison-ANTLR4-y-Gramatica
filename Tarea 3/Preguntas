@@ -1,0 +1,845 @@
+# Respuestas a las Preguntas Didácticas
+
+**Tarea 3: Introducción al Patrón Visitor en ANTLR4**  
+**Universidad Autónoma Metropolitana - Cuajimalpa**  
+**Estudiante:** Arturo Reyes Paniagua 
+**Fecha:** 24 de julio de 2025
+
+---
+
+## Ejercicio 1: Calculadora Científica con Visitor
+
+### Pregunta 1: ¿Por qué es útil el patrón Visitor en este contexto?
+
+**Respuesta:**
+
+El patrón Visitor es particularmente útil en el contexto de una calculadora científica por las siguientes razones:
+
+#### **Separación de responsabilidades**
+- El patrón Visitor separa claramente la **estructura del árbol sintáctico** (generada por ANTLR) de la **lógica de evaluación** (implementada en el visitor)
+- Esto permite que cada clase tenga una responsabilidad específica y bien definida
+
+#### **Extensibilidad**
+- Podemos agregar nuevas operaciones sin modificar la gramática original:
+  - `EvaluationVisitor` - para evaluar expresiones
+  - `PrintVisitor` - para mostrar expresiones en formato legible
+  - `OptimizationVisitor` - para optimizar expresiones algebraicas
+  - `DerivativeVisitor` - para calcular derivadas simbólicas
+
+#### **Reutilización**
+- El mismo árbol sintáctico puede ser procesado por diferentes visitors
+- No necesitamos regenerar el parser para agregar nuevas funcionalidades
+
+#### **Mantenibilidad**
+- Cada tipo de operación queda encapsulada en su propio método
+- Los cambios en la lógica de evaluación no afectan el parsing
+- Es más fácil debuggear y mantener el código
+
+#### **Type Safety**
+- ANTLR genera interfaces tipadas que previenen errores en tiempo de compilación
+- El compilador verifica que implementemos todos los métodos necesarios
+
+**Ejemplo práctico:**
+```java
+// El mismo árbol puede ser procesado de diferentes maneras:
+ParseTree tree = parser.expr();
+Double result = evaluationVisitor.visit(tree);     // Evaluar
+String formatted = printVisitor.visit(tree);        // Formatear
+ParseTree optimized = optimizationVisitor.visit(tree); // Optimizar
+```
+
+---
+
+### Pregunta 2: ¿Cómo maneja tu implementación la precedencia de operadores?
+
+**Respuesta:**
+
+La precedencia de operadores se maneja mediante **el orden de las alternativas en la gramática**. En ANTLR, las alternativas que aparecen primero tienen mayor precedencia.
+
+#### **Gramática con precedencia:**
+```antlr
+expr
+    : expr '^' expr         # PowerExpr      (Precedencia MÁS ALTA)
+    | 'sin' '(' expr ')'    # SinExpr        
+    | 'cos' '(' expr ')'    # CosExpr        
+    | 'log' '(' expr ')'    # LogExpr        
+    | expr '*' expr         # MulExpr        (Precedencia ALTA)
+    | expr '/' expr         # DivExpr        
+    | expr '+' expr         # AddExpr        (Precedencia MEDIA)
+    | expr '-' expr         # SubExpr        
+    | '(' expr ')'          # ParenExpr      (Precedencia MÁXIMA)
+    | NUM                   # NumberExpr     
+    | ID                    # VarExpr        (Precedencia MÁS BAJA)
+    ;
+```
+
+#### **Orden de precedencia implementado:**
+1. **Paréntesis**: `()` - Precedencia máxima
+2. **Funciones**: `sin()`, `cos()`, `log()` - Precedencia muy alta
+3. **Potencia**: `^` - Precedencia alta
+4. **Multiplicación/División**: `*`, `/` - Precedencia media-alta
+5. **Suma/Resta**: `+`, `-` - Precedencia media-baja
+6. **Variables y números**: `x`, `42` - Precedencia base
+
+#### **Ejemplo de evaluación:**
+```
+Expresión: 2 + 3 * 4^2
+Parsing: 2 + (3 * (4^2))
+Resultado: 2 + (3 * 16) = 2 + 48 = 50
+```
+
+#### **Nota importante:**
+La gramática actual tiene **asociatividad izquierda** para todos los operadores. Sin embargo, matemáticamente la potencia debería ser **asociativa a la derecha**:
+- **Correcto**: `2^3^2 = 2^(3^2) = 2^9 = 512`
+- **Actual**: `2^3^2 = (2^3)^2 = 8^2 = 64`
+
+Para corregir esto, se necesitaría modificar la regla de potencia para ser recursiva a la derecha.
+
+---
+
+### Pregunta 3: Si quisieras añadir soporte para variables, ¿qué cambios harías? Muestra la gramática modificada y el MyVisitorV2 (versión 2) modificado.
+
+**Respuesta:**
+
+**¡Ya implementé soporte completo para variables en la versión final!** A continuación detallo todos los cambios realizados:
+
+#### **Cambios en la gramática (Calc.g4):**
+
+**ANTES** (solo expresiones):
+```antlr
+grammar Calc;
+prog: expr EOF;
+expr: expr '+' expr | expr '*' expr | NUM ;
+NUM : [0-9]+('.'[0-9]+)?;
+```
+
+**DESPUÉS** (con variables):
+```antlr
+grammar Calc;
+
+prog: stat EOF;
+
+stat: ID '=' expr    # assign      ← NUEVO: Asignaciones
+    | expr           # printExpr   ← NUEVO: Expresiones
+    ;
+
+expr
+    : expr '^' expr         # PowerExpr
+    | 'sin' '(' expr ')'    # SinExpr
+    | 'cos' '(' expr ')'    # CosExpr
+    | 'log' '(' expr ')'    # LogExpr
+    | expr '*' expr         # MulExpr
+    | expr '/' expr         # DivExpr
+    | expr '+' expr         # AddExpr
+    | expr '-' expr         # SubExpr
+    | '(' expr ')'          # ParenExpr
+    | NUM                   # NumberExpr
+    | ID                    # VarExpr       ← NUEVO: Variables
+    ;
+
+NUM : [0-9]+('.'[0-9]+)?;
+ID  : [a-zA-Z_][a-zA-Z0-9_]*;              ← NUEVO: Identificadores
+WS  : [ \t\r\n]+ -> skip ;
+```
+
+#### **Cambios en el Visitor (MyCalcVisitor.java):**
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class MyCalcVisitor extends CalcBaseVisitor<Double> {
+    
+    // ← NUEVO: Tabla de símbolos para variables
+    private Map<String, Double> variables = new HashMap<>();
+
+    @Override
+    public String visitProg(CalcParser.ProgContext ctx) {
+        return visit(ctx.stat());
+    }
+
+    // ← NUEVO: Manejo de asignaciones
+    @Override
+    public Double visitAssign(CalcParser.AssignContext ctx) {
+        String varName = ctx.ID().getText();
+        Double value = visit(ctx.expr());
+        variables.put(varName, value);
+        System.out.println(varName + " = " + value); // Confirmar asignación
+        return value;
+    }
+
+    // ← NUEVO: Manejo de expresiones para imprimir
+    @Override
+    public Double visitPrintExpr(CalcParser.PrintExprContext ctx) {
+        return visit(ctx.expr());
+    }
+
+    // ← NUEVO: Resolución de variables
+    @Override
+    public Double visitVarExpr(CalcParser.VarExprContext ctx) {
+        String varName = ctx.ID().getText();
+        if (variables.containsKey(varName)) {
+            return variables.get(varName);
+        } else {
+            throw new RuntimeException("Variable no definida: " + varName);
+        }
+    }
+    
+    // ← NUEVO: Método para debugging
+    public Map<String, Double> getVariables() {
+        return new HashMap<>(variables);
+    }
+    
+    // ... resto de métodos para operadores (sin cambios)
+}
+```
+
+#### **Funcionalidades agregadas:**
+
+1. **Tabla de símbolos**: `Map<String, Double> variables` para almacenar variables
+2. **Asignaciones**: `visitAssign()` maneja `x = 5`
+3. **Resolución de variables**: `visitVarExpr()` busca variables en la tabla
+4. **Validación**: Error claro si se usa variable no definida
+5. **Persistencia**: Variables se mantienen entre comandos
+6. **Debugging**: Comando `vars` para ver variables definidas
+
+#### **Ejemplo de uso:**
+```
+calc> x = 10
+x = 10.0
+calc> y = x * 2
+y = 20.0
+calc> sin(x)
+Resultado: -0.5440211108893698
+calc> z = (x + y) / 2
+z = 15.0
+calc> vars
+Variables definidas:
+  x = 10.0
+  y = 20.0  
+  z = 15.0
+```
+
+---
+
+### Pregunta 4: ¿Qué sucede si se ingresa una expresión inválida como sin()?
+
+**Respuesta:**
+
+Cuando se ingresa una expresión inválida como `sin()`, se produce un **error de parsing** que es manejado por el sistema de errores de ANTLR.
+
+#### **Análisis del error:**
+
+**Expresión problemática**: `sin()`
+
+**Problema**: La gramática especifica:
+```antlr
+'sin' '(' expr ')'    # SinExpr
+```
+
+Esto significa que `sin` **requiere obligatoriamente** una expresión entre paréntesis.
+
+#### **Proceso de detección del error:**
+
+1. **Lexer**: Reconoce tokens `'sin'`, `'('`, `')'`
+2. **Parser**: Intenta hacer match con la regla `'sin' '(' expr ')'`
+3. **Error**: No encuentra `expr` entre `'('` y `')'`
+4. **Excepción**: ANTLR genera un `RecognitionException`
+
+#### **Manejo del error en la implementación:**
+
+```java
+// Configuración de manejo de errores en CalcMain.java
+parser.removeErrorListeners();
+parser.addErrorListener(new BaseErrorListener() {
+    @Override
+    public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
+                          int line, int charPositionInLine,
+                          String msg, RecognitionException e) {
+        throw new RuntimeException("Error de sintaxis en posición " + 
+                                 charPositionInLine + ": " + msg);
+    }
+});
+```
+
+#### **Ejemplo de errores y mensajes:**
+
+| Entrada inválida | Error generado |
+|------------------|----------------|
+| `sin()` | `"Error de sintaxis: missing expr at ')'"`  |
+| `log(` | `"Error de sintaxis: missing ')' at '<EOF>'"` |
+| `2 + * 3` | `"Error de sintaxis: extraneous input '*' expecting expr"` |
+| `cos(x` | `"Error de sintaxis: missing ')' at '<EOF>'"` |
+| `unknownVar` | `"Variable no definida: unknownVar"` |
+
+#### **Respuesta del sistema:**
+
+```
+calc> sin()
+Error: Error de sintaxis en posición 4: missing expr at ')'
+
+calc> log(
+Error: Error de sintaxis en posición 4: missing ')' at '<EOF>'
+
+calc> 2 + * 3  
+Error: Error de sintaxis en posición 4: extraneous input '*' expecting expr
+
+calc> undefinedVar
+Error: Variable no definida: undefinedVar
+```
+
+#### **Beneficios de este manejo:**
+- **Mensajes claros**: El usuario entiende exactamente qué está mal
+- **Posición específica**: Se indica dónde ocurre el error
+- **Continuidad**: El programa no se cuelga, permite seguir probando
+- **Diferentes tipos**: Distingue entre errores de sintaxis y errores semánticos
+
+---
+
+## Ejercicio 2: Traductor de un Lenguaje Simple
+
+### Pregunta 1: ¿Cómo aseguras la precedencia?
+
+**Respuesta:**
+
+La precedencia en el traductor MiniLang se asegura mediante **el orden jerárquico de las alternativas** en la gramática, siguiendo el mismo principio que en el Ejercicio 1.
+
+#### **Gramática con precedencia (MiniLang.g4):**
+
+```antlr
+expr : expr op=('>'|'>='|'<'|'<='|'=='|'!=') expr  # Comparison (BAJA precedencia)
+     | expr op=('*'|'/') expr   # MulDiv (ALTA precedencia)  
+     | expr op=('+'|'-') expr   # AddSub (MEDIA precedencia)
+     | '(' expr ')'             # Parentesis (MÁXIMA precedencia)
+     | NUMERO                   # Literal
+     | ID                       # Variable
+     ;
+```
+
+#### **Orden de precedencia (de mayor a menor):**
+
+1. **Paréntesis**: `()` - Precedencia máxima
+2. **Multiplicación/División**: `*`, `/` - Precedencia alta
+3. **Suma/Resta**: `+`, `-` - Precedencia media
+4. **Comparación**: `>`, `>=`, `<`, `<=`, `==`, `!=` - Precedencia baja
+
+#### **Ejemplos de precedencia:**
+
+| Expresión MiniLang | Parsing resultante | Código Java generado |
+|-------------------|-------------------|---------------------|
+| `2 + 3 * 4` | `2 + (3 * 4)` | `(2 + (3 * 4))` |
+| `x > y + 1` | `x > (y + 1)` | `(x > (y + 1))` |
+| `a * b == c * d` | `(a * b) == (c * d)` | `((a * b) == (c * d))` |
+
+#### **Implementación en el Visitor:**
+
+```java
+@Override
+public String visitMulDiv(MiniLangParser.MulDivContext ctx) {
+    String left = visit(ctx.expr(0));
+    String right = visit(ctx.expr(1));
+    String op = ctx.op.getText();
+    return "(" + left + " " + op + " " + right + ")";
+}
+
+@Override
+public String visitAddSub(MiniLangParser.AddSubContext ctx) {
+    String left = visit(ctx.expr(0));
+    String right = visit(ctx.expr(1));
+    String op = ctx.op.getText();
+    return "(" + left + " " + op + " " + right + ")";
+}
+
+@Override
+public String visitComparison(MiniLangParser.ComparisonContext ctx) {
+    String left = visit(ctx.expr(0));
+    String right = visit(ctx.expr(1));
+    String op = ctx.op.getText();
+    return "(" + left + " " + op + " " + right + ")";
+}
+```
+
+#### **Prueba de precedencia:**
+
+**Código MiniLang:**
+```
+let result = 2 + 3 * 4 > 10
+print result
+```
+
+**Código Java generado:**
+```java
+int result = ((2 + (3 * 4)) > 10);
+System.out.println(result);
+```
+
+**Evaluación paso a paso:**
+1. `3 * 4` = `12` (multiplicación primero)
+2. `2 + 12` = `14` (suma después)
+3. `14 > 10` = `true` (comparación al final)
+
+---
+
+### Pregunta 2: ¿Qué limitaciones tiene este traductor actualmente?
+
+**Respuesta:**
+
+El traductor MiniLang actual tiene varias limitaciones importantes que lo hacen un lenguaje muy básico:
+
+#### **Limitaciones de tipos de datos:**
+- ❌ **Solo enteros**: No soporta `float`, `double`, `string`, `boolean`
+- ❌ **Sin arrays**: No hay soporte para `int[]` o listas
+- ❌ **Sin objetos**: No hay clases ni estructuras de datos complejas
+
+#### **Limitaciones de funciones:**
+- ❌ **Sin funciones definidas por usuario**: No hay `function nombre(params) { ... }`
+- ❌ **Sin parámetros**: No se pueden pasar argumentos
+- ❌ **Sin return**: No hay valores de retorno
+- ❌ **Sin recursión**: No se pueden hacer llamadas recursivas
+
+#### **Limitaciones de control de flujo:**
+- ❌ **Sin else**: No hay `if/else`, solo `if/then/endif`
+- ❌ **Sin for**: No hay bucles `for(i=0; i<10; i++)`
+- ❌ **Sin break/continue**: No hay control de flujo dentro de loops
+- ❌ **Sin switch**: No hay `switch/case`
+
+#### **Limitaciones de operadores:**
+- ❌ **Sin operadores lógicos**: No hay `&&`, `||`, `!`
+- ❌ **Sin operadores de incremento**: No hay `++`, `--`
+- ❌ **Sin operadores de asignación**: No hay `+=`, `-=`, `*=`
+
+#### **Limitaciones de scope y variables:**
+- ❌ **Sin scope local**: Todas las variables son globales
+- ❌ **Sin constantes**: No hay `const` o `final`
+- ❌ **Sin tipos explícitos**: Solo inferencia de tipos
+
+#### **Limitaciones de entrada/salida:**
+- ❌ **Solo print**: No hay `input()` o `read()`
+- ❌ **Sin formateo**: No hay `printf` o formato de strings
+
+#### **Limitaciones de manejo de errores:**
+- ❌ **Sin try/catch**: No hay manejo de excepciones
+- ❌ **Sin validación de tipos**: Errores solo en runtime de Java
+
+#### **Limitaciones de comentarios y documentación:**
+- ❌ **Sin comentarios**: No hay `//` o `/* */`
+- ❌ **Sin documentación**: No hay docstrings
+
+#### **Ejemplo de lo que NO se puede hacer:**
+
+```
+// ❌ Esto NO funciona en MiniLang actual:
+
+// Funciones
+function factorial(n) {
+    if n <= 1 then
+        return 1
+    else
+        return n * factorial(n - 1)
+    endif
+}
+
+// Arrays
+let numbers = [1, 2, 3, 4, 5]
+
+// For loops  
+for i = 0 to 10 do
+    print i
+endfor
+
+// Strings
+let name = "Juan"
+print "Hola " + name
+
+// Operadores lógicos
+if x > 0 && y > 0 then
+    print "Ambos positivos"
+endif
+```
+
+#### **Impacto de las limitaciones:**
+- **Uso educativo**: Perfecto para enseñar conceptos básicos
+- **Proyectos reales**: Muy limitado para aplicaciones prácticas
+- **Extensibilidad**: Fácil de extender agregando nuevas reglas
+
+---
+
+### Pregunta 3: ¿Podrías usar JavaScript en vez de Java qué cambiaría?
+
+**Respuesta:**
+
+Sí, definitivamente se puede usar JavaScript como lenguaje de destino. Los cambios principales serían:
+
+#### **1. Generación del parser:**
+```bash
+# En lugar de:
+antlr4 -visitor MiniLang.g4
+
+# Usar:
+antlr4 -Dlanguage=JavaScript MiniLang.g4
+```
+
+#### **2. Sintaxis del visitor (JavaScript):**
+
+**ANTES (Java visitor):**
+```java
+public class MiniLangToJavaVisitor extends MiniLangBaseVisitor<String> {
+    @Override
+    public String visitDeclaracion(MiniLangParser.DeclaracionContext ctx) {
+        String varName = ctx.ID().getText();
+        String expr = visit(ctx.expr());
+        return "int " + varName + " = " + expr;
+    }
+}
+```
+
+**DESPUÉS (JavaScript visitor):**
+```javascript
+class MiniLangToJSVisitor extends MiniLangBaseVisitor {
+    visitDeclaracion(ctx) {
+        const varName = ctx.ID().getText();
+        const expr = this.visit(ctx.expr());
+        return `let ${varName} = ${expr}`;
+    }
+}
+```
+
+#### **3. Código generado:**
+
+| Construcción MiniLang | Java generado | JavaScript generado |
+|----------------------|---------------|-------------------|
+| `let x = 10` | `int x = 10;` | `let x = 10;` |
+| `x = x + 1` | `x = (x + 1);` | `x = (x + 1);` |
+| `print x` | `System.out.println(x);` | `console.log(x);` |
+| `if x > 0 then` | `if ((x > 0)) {` | `if ((x > 0)) {` |
+| `while x < 10 do` | `while ((x < 10)) {` | `while ((x < 10)) {` |
+
+#### **4. Ejemplo completo de traducción:**
+
+**Código MiniLang:**
+```
+let x = 10
+let y = 5
+print x + y
+if x > y then
+    print x
+endif
+```
+
+**Salida Java:**
+```java
+public class programa {
+    public static void main(String[] args) {
+        int x = 10;
+        int y = 5;
+        System.out.println((x + y));
+        if ((x > y)) {
+            System.out.println(x);
+        }
+    }
+}
+```
+
+**Salida JavaScript:**
+```javascript
+let x = 10;
+let y = 5;
+console.log((x + y));
+if ((x > y)) {
+    console.log(x);
+}
+```
+
+#### **5. Ventajas de JavaScript:**
+
+✅ **Sintaxis más simple:**
+- No necesita declarar tipos explícitos
+- No necesita `public static void main`
+- Menos boilerplate code
+
+✅ **Tipos dinámicos:**
+- Las variables pueden cambiar de tipo
+- No hay conflictos de tipos en tiempo de compilación
+
+✅ **Ejecución más rápida:**
+- No necesita compilación separada
+- Se ejecuta directamente con Node.js
+
+✅ **Flexibilidad:**
+- Funciones como first-class objects
+- Closures y programación funcional
+
+#### **6. Desventajas de JavaScript:**
+
+❌ **Sin verificación de tipos:**
+- Errores de tipos solo se detectan en runtime
+- Menos safety que Java
+
+❌ **Comportamiento impredecible:**
+- Coerción automática de tipos puede dar resultados inesperados
+- `"5" + 3 = "53"` en lugar de `8`
+
+❌ **Debugging más difícil:**
+- Errores menos descriptivos
+- Comportamiento dinámico más difícil de rastrear
+
+#### **7. Implementación del visitor JavaScript:**
+
+```javascript
+class MiniLangToJSVisitor extends MiniLangBaseVisitor {
+    visitPrograma(ctx) {
+        let code = "";
+        ctx.instruccion().forEach(instr => {
+            const line = this.visit(instr);
+            if (line && line.trim()) {
+                code += line + ";\n";
+            }
+        });
+        return code;
+    }
+    
+    visitDeclaracion(ctx) {
+        const varName = ctx.ID().getText();
+        const expr = this.visit(ctx.expr());
+        return `let ${varName} = ${expr}`;
+    }
+    
+    visitImprimir(ctx) {
+        const expr = this.visit(ctx.expr());
+        return `console.log(${expr})`;
+    }
+    
+    visitIf(ctx) {
+        const condition = this.visit(ctx.expr());
+        let body = "";
+        ctx.instruccion().forEach(instr => {
+            const line = this.visit(instr);
+            if (line && line.trim()) {
+                body += `    ${line};\n`;
+            }
+        });
+        return `if (${condition}) {\n${body}}`;
+    }
+}
+```
+
+#### **Conclusión:**
+JavaScript sería una excelente opción como lenguaje de destino, especialmente para:
+- **Prototipos rápidos**
+- **Desarrollo web** (ejecutar MiniLang en el browser)
+- **Scripting** y automatización
+- **Enseñanza** (sintaxis más familiar para estudiantes)
+
+---
+
+### Pregunta 4: ¿Por qué es importante separar el parser del visitor?
+
+**Respuesta:**
+
+La separación entre parser y visitor es un principio arquitectónico fundamental que aporta múltiples beneficios:
+
+#### **1. Reutilización del parser:**
+
+El mismo parser puede ser utilizado para **múltiples propósitos** sin modificación:
+
+```java
+// Un solo parser, múltiples usos:
+MiniLangParser parser = new MiniLangParser(tokens);
+ParseTree tree = parser.programa();
+
+// Diferentes visitors para diferentes propósitos:
+String javaCode = new MiniLangToJavaVisitor().visit(tree);
+String jsCode = new MiniLangToJSVisitor().visit(tree);  
+String pythonCode = new MiniLangToPythonVisitor().visit(tree);
+String cppCode = new MiniLangToCppVisitor().visit(tree);
+
+// Herramientas de análisis:
+List<String> variables = new VariableExtractorVisitor().visit(tree);
+Map<String, Integer> metrics = new CodeMetricsVisitor().visit(tree);
+ParseTree optimized = new OptimizationVisitor().visit(tree);
+```
+
+#### **2. Mantenibilidad:**
+
+**Separación de responsabilidades:**
+- **Parser**: Solo se encarga de **estructura sintáctica**
+  - Reconoce tokens
+  - Construye árbol sintáctico
+  - Verifica gramática
+  
+- **Visitor**: Solo se encarga de **semántica y procesamiento**
+  - Evalúa expresiones
+  - Genera código
+  - Realiza análisis
+
+**Beneficio**: Los cambios en uno no afectan al otro.
+
+#### **3. Extensibilidad:**
+
+Es fácil agregar nuevas funcionalidades sin tocar el parser:
+
+```java
+// Agregar nuevos visitors sin modificar la gramática:
+
+// Visitor para contar líneas de código
+public class LOCCounterVisitor extends MiniLangBaseVisitor<Integer> {
+    @Override
+    public Integer visitPrograma(ctx) { /* ... */ }
+}
+
+// Visitor para detectar variables no usadas  
+public class UnusedVariableVisitor extends MiniLangBaseVisitor<List<String>> {
+    @Override
+    public List<String> visitPrograma(ctx) { /* ... */ }
+}
+
+// Visitor para refactoring automático
+public class RefactoringVisitor extends MiniLangBaseVisitor<ParseTree> {
+    @Override  
+    public ParseTree visitPrograma(ctx) { /* ... */ }
+}
+
+// Visitor para documentación automática
+public class DocumentationVisitor extends MiniLangBaseVisitor<String> {
+    @Override
+    public String visitPrograma(ctx) { /* ... */ }
+}
+```
+
+#### **4. Testing independiente:**
+
+```java
+// Testear parser por separado
+@Test
+public void testParserSyntax() {
+    String code = "let x = 10\nprint x";
+    ParseTree tree = parseCode(code);
+    assertNotNull(tree);
+    // Verificar estructura del árbol
+}
+
+// Testear visitor por separado  
+@Test
+public void testJavaGeneration() {
+    ParseTree mockTree = createMockTree();
+    String result = new MiniLangToJavaVisitor().visit(mockTree);
+    assertEquals("int x = 10;", result);
+}
+
+// Testear integración
+@Test 
+public void testEndToEnd() {
+    String miniLangCode = "let x = 5\nprint x";
+    String javaCode = translateToJava(miniLangCode);
+    String output = executeJava(javaCode);
+    assertEquals("5", output);
+}
+```
+
+#### **5. Múltiples lenguajes de destino:**
+
+Un solo parser puede generar código para múltiples lenguajes:
+
+| MiniLang | Java | JavaScript | Python | C++ |
+|----------|------|------------|--------|-----|
+| `let x = 5` | `int x = 5;` | `let x = 5;` | `x = 5` | `int x = 5;` |
+| `print x` | `System.out.println(x);` | `console.log(x);` | `print(x)` | `cout << x;` |
+
+#### **6. Herramientas de desarrollo:**
+
+```java
+// IDE features usando visitors:
+ParseTree tree = parser.programa();
+
+// Syntax highlighting
+SyntaxHighlightVisitor().visit(tree);
+
+// Auto-completion  
+AutoCompleteVisitor().visit(tree);
+
+// Error detection
+ErrorDetectionVisitor().visit(tree);
+
+// Code formatting
+CodeFormatterVisitor().visit(tree);
+
+// Refactoring suggestions
+RefactoringSuggestionsVisitor().visit(tree);
+```
+
+#### **7. Paralelización:**
+
+```java
+// El mismo árbol puede ser procesado en paralelo:
+ExecutorService executor = Executors.newFixedThreadPool(4);
+
+CompletableFuture<String> javaGeneration = 
+    CompletableFuture.supplyAsync(() -> 
+        new JavaVisitor().visit(tree), executor);
+
+CompletableFuture<String> jsGeneration = 
+    CompletableFuture.supplyAsync(() -> 
+        new JSVisitor().visit(tree), executor);
+
+CompletableFuture<List<String>> errorCheck = 
+    CompletableFuture.supplyAsync(() -> 
+        new ErrorVisitor().visit(tree), executor);
+
+// Esperar todos los resultados
+CompletableFuture.allOf(javaGeneration, jsGeneration, errorCheck).join();
+```
+
+#### **8. Evolución independiente:**
+
+- **Parser evoluciona**: Para soportar nueva sintaxis
+- **Visitor evoluciona**: Para mejorar generación de código
+- **Sin conflictos**: Cada uno puede cambiar sin afectar al otro
+
+#### **Ejemplo práctico de beneficios:**
+
+```java
+// Supongamos que queremos agregar soporte para comentarios:
+
+// 1. Solo modificamos la gramática:
+// COMMENT : '//' ~[\r\n]* -> skip ;
+
+// 2. El parser automáticamente ignora comentarios
+// 3. TODOS los visitors existentes siguen funcionando
+// 4. No necesitamos cambiar ningún visitor existente
+// 5. Los comentarios se procesan automáticamente
+
+// Supongamos que queremos mejorar la generación de Java:
+// 1. Solo modificamos JavaVisitor
+// 2. El parser no cambia
+// 3. Otros visitors (JS, Python) no se afectan
+// 4. Las pruebas del parser siguen pasando
+```
+
+#### **Conclusión:**
+
+La separación parser/visitor es crucial porque implementa los principios de:
+- **Single Responsibility Principle** (SRP)
+- **Open/Closed Principle** (OCP)
+- **Dependency Inversion Principle** (DIP)
+
+Esto resulta en un sistema más **modular**, **testeable**, **mantenible** y **extensible**.
+
+---
+
+## Resumen de Conceptos Clave
+
+| Ejercicio | Pregunta | Concepto Principal | Implementación |
+|-----------|----------|-------------------|----------------|
+| **1.1** | Utilidad Visitor | Separación de responsabilidades | Parser + Visitor independientes |
+| **1.2** | Precedencia | Orden de alternativas en gramática | `^` > `*/` > `+-` |
+| **1.3** | Variables | Tabla de símbolos + nuevas reglas | `Map<String, Double>` + `ID` token |
+| **1.4** | Expresión inválida | Manejo de errores de parsing | `RecognitionException` + mensaje |
+| **2.1** | Precedencia | Jerarquía de operadores | `()` > `*/` > `+-` > comparación |
+| **2.2** | Limitaciones | Scope de lenguaje actual | Solo int, sin funciones, sin arrays |
+| **2.3** | JavaScript vs Java | Diferentes targets de compilación | Sintaxis simple vs type safety |
+| **2.4** | Separación arquitectónica | Modularidad y extensibilidad | Un parser, múltiples visitors |
+
+---
+
+**Autor:** Arturo Reyes Paniagua 
+**Universidad Autónoma Metropolitana - Cuajimalpa**
