@@ -1,26 +1,27 @@
 import java.util.*;
-import java.io.*;
 
-public class RuInterpreter extends RuBaseVisitor<Object> {
+public class MyVisitor extends RuBaseVisitor<Object> {
 
-    // Tabla de símbolos para variables
+    // Tabla de variables
     private Map<String, Object> variables = new HashMap<>();
 
-    // Buffer para capturar la salida
+    // Salida del programa
     private StringBuilder output = new StringBuilder();
 
-    // Buffer para capturar logs
+    // Logs del programa
     private StringBuilder logOutput = new StringBuilder();
 
-    // Stack para manejo de scope (futuras extensiones)
-    private Stack<Map<String, Object>> scopes = new Stack<>();
+    // Componente padre para dialogs
+    private java.awt.Component parentComponent = null;
 
-    public RuInterpreter() {
-        // Inicializar scope global
-        scopes.push(variables);
+    public MyVisitor() {
+        // Constructor simple
     }
 
-    // Métodos para obtener la salida
+    public void setParentComponent(java.awt.Component parent) {
+        this.parentComponent = parent;
+    }
+
     public String getOutput() {
         return output.toString();
     }
@@ -32,19 +33,12 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     public void clearOutput() {
         output.setLength(0);
         logOutput.setLength(0);
+        variables.clear();
     }
 
     @Override
     public Object visitPrograma(RuParser.ProgramaContext ctx) {
-        try {
-            return visit(ctx.bloque());
-        } catch (Exception e) {
-            throw new RuntimeException("Error durante la ejecución: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public Object visitBloque(RuParser.BloqueContext ctx) {
+        // Visitar todas las sentencias
         Object result = null;
         for (RuParser.SentenciaContext sentencia : ctx.sentencia()) {
             result = visit(sentencia);
@@ -54,18 +48,28 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
 
     @Override
     public Object visitSentencia(RuParser.SentenciaContext ctx) {
-        if (ctx.asignacion() != null) {
+        if (ctx.declaracion() != null) {
+            return visit(ctx.declaracion());
+        } else if (ctx.asignacion() != null) {
             return visit(ctx.asignacion());
+        } else if (ctx.imprimir() != null) {
+            return visit(ctx.imprimir());
+        } else if (ctx.log() != null) {
+            return visit(ctx.log());
         } else if (ctx.sentencia_if() != null) {
             return visit(ctx.sentencia_if());
         } else if (ctx.sentencia_while() != null) {
             return visit(ctx.sentencia_while());
-        } else if (ctx.log() != null) {
-            return visit(ctx.log());
-        } else if (ctx.imprimir() != null) {
-            return visit(ctx.imprimir());
         }
         return null;
+    }
+
+    @Override
+    public Object visitDeclaracion(RuParser.DeclaracionContext ctx) {
+        String varName = ctx.ID().getText();
+        Object value = visit(ctx.expr());
+        variables.put(varName, value);
+        return value;
     }
 
     @Override
@@ -77,37 +81,48 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     }
 
     @Override
+    public Object visitImprimir(RuParser.ImprimirContext ctx) {
+        Object value = visit(ctx.expr());
+        String message = valueToString(value);
+        output.append(message).append("\n");
+        return value;
+    }
+
+    @Override
+    public Object visitLog(RuParser.LogContext ctx) {
+        Object value = visit(ctx.expr());
+        String message = "[LOG] " + valueToString(value);
+        logOutput.append(message).append("\n");
+        return value;
+    }
+
+    @Override
     public Object visitSentencia_if(RuParser.Sentencia_ifContext ctx) {
-        // Evaluar condición principal
-        Object condition = visit(ctx.bloque_condicional(0).expr());
+        Object condition = visit(ctx.expr());
         if (isTrue(condition)) {
-            return visit(ctx.bloque_condicional(0).bloque_de_sentencia());
+            return visit(ctx.bloque_if());
+        } else if (ctx.bloque_else() != null) {
+            return visit(ctx.bloque_else());
         }
-
-        // Evaluar else if
-        for (int i = 1; i < ctx.bloque_condicional().size(); i++) {
-            condition = visit(ctx.bloque_condicional(i).expr());
-            if (isTrue(condition)) {
-                return visit(ctx.bloque_condicional(i).bloque_de_sentencia());
-            }
-        }
-
-        // Evaluar else
-        if (ctx.bloque_de_sentencia() != null) {
-            return visit(ctx.bloque_de_sentencia());
-        }
-
         return null;
     }
 
     @Override
-    public Object visitBloque_de_sentencia(RuParser.Bloque_de_sentenciaContext ctx) {
-        if (ctx.bloque() != null) {
-            return visit(ctx.bloque());
-        } else if (ctx.sentencia() != null) {
-            return visit(ctx.sentencia());
+    public Object visitBloque_if(RuParser.Bloque_ifContext ctx) {
+        Object result = null;
+        for (RuParser.SentenciaContext sentencia : ctx.sentencia()) {
+            result = visit(sentencia);
         }
-        return null;
+        return result;
+    }
+
+    @Override
+    public Object visitBloque_else(RuParser.Bloque_elseContext ctx) {
+        Object result = null;
+        for (RuParser.SentenciaContext sentencia : ctx.sentencia()) {
+            result = visit(sentencia);
+        }
+        return result;
     }
 
     @Override
@@ -115,32 +130,23 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
         Object result = null;
         while (true) {
             Object condition = visit(ctx.expr());
-            if (!isTrue(condition)) {
-                break;
-            }
-            result = visit(ctx.bloque_de_sentencia());
+            if (!isTrue(condition)) break;
+            result = visit(ctx.bloque_while());
         }
         return result;
     }
 
     @Override
-    public Object visitLog(RuParser.LogContext ctx) {
-        Object value = visit(ctx.expr());
-        String logMessage = "[LOG] " + formatValue(value);
-        logOutput.append(logMessage).append("\n");
-        System.out.println(logMessage); // También imprimir en consola
-        return value;
+    public Object visitBloque_while(RuParser.Bloque_whileContext ctx) {
+        Object result = null;
+        for (RuParser.SentenciaContext sentencia : ctx.sentencia()) {
+            result = visit(sentencia);
+        }
+        return result;
     }
 
-    @Override
-    public Object visitImprimir(RuParser.ImprimirContext ctx) {
-        Object value = visit(ctx.expr());
-        String message = formatValue(value);
-        output.append(message).append("\n");
-        return value;
-    }
+    // === EXPRESIONES ===
 
-    // Expresiones
     @Override
     public Object visitPowExpr(RuParser.PowExprContext ctx) {
         Object left = visit(ctx.expr(0));
@@ -156,7 +162,7 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
         } else if (value instanceof Double) {
             return -(Double) value;
         }
-        throw new RuntimeException("Operador menos unario no aplicable a: " + value);
+        throw new RuntimeException("Operador - no aplicable a: " + value);
     }
 
     @Override
@@ -166,7 +172,7 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     }
 
     @Override
-    public Object visitMultiplicacionExpr(RuParser.MultiplicacionExprContext ctx) {
+    public Object visitMultExpr(RuParser.MultExprContext ctx) {
         Object left = visit(ctx.expr(0));
         Object right = visit(ctx.expr(1));
         String op = ctx.op.getText();
@@ -184,7 +190,7 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     }
 
     @Override
-    public Object visitAditivaExpr(RuParser.AditivaExprContext ctx) {
+    public Object visitAddExpr(RuParser.AddExprContext ctx) {
         Object left = visit(ctx.expr(0));
         Object right = visit(ctx.expr(1));
         String op = ctx.op.getText();
@@ -200,7 +206,7 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     }
 
     @Override
-    public Object visitRelacionalExpr(RuParser.RelacionalExprContext ctx) {
+    public Object visitCompExpr(RuParser.CompExprContext ctx) {
         Object left = visit(ctx.expr(0));
         Object right = visit(ctx.expr(1));
         String op = ctx.op.getText();
@@ -220,7 +226,7 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     }
 
     @Override
-    public Object visitIgualdadExpr(RuParser.IgualdadExprContext ctx) {
+    public Object visitEqualExpr(RuParser.EqualExprContext ctx) {
         Object left = visit(ctx.expr(0));
         Object right = visit(ctx.expr(1));
         String op = ctx.op.getText();
@@ -238,9 +244,7 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     @Override
     public Object visitAndExpr(RuParser.AndExprContext ctx) {
         Object left = visit(ctx.expr(0));
-        if (!isTrue(left)) {
-            return false; // Short-circuit evaluation
-        }
+        if (!isTrue(left)) return false;
         Object right = visit(ctx.expr(1));
         return isTrue(right);
     }
@@ -248,46 +252,18 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     @Override
     public Object visitOrExpr(RuParser.OrExprContext ctx) {
         Object left = visit(ctx.expr(0));
-        if (isTrue(left)) {
-            return true; // Short-circuit evaluation
-        }
+        if (isTrue(left)) return true;
         Object right = visit(ctx.expr(1));
         return isTrue(right);
     }
 
-    @Override
-    public Object visitAtomExpr(RuParser.AtomExprContext ctx) {
-        return visit(ctx.atomo());
-    }
-
-    // Átomos
     @Override
     public Object visitParExpr(RuParser.ParExprContext ctx) {
         return visit(ctx.expr());
     }
 
     @Override
-    public Object visitNumberAtom(RuParser.NumberAtomContext ctx) {
-        if (ctx.INT() != null) {
-            return Integer.parseInt(ctx.INT().getText());
-        } else if (ctx.FLOAT() != null) {
-            return Double.parseDouble(ctx.FLOAT().getText());
-        }
-        throw new RuntimeException("Número inválido");
-    }
-
-    @Override
-    public Object visitBooleanAtom(RuParser.BooleanAtomContext ctx) {
-        if (ctx.TRUE() != null) {
-            return true;
-        } else if (ctx.FALSE() != null) {
-            return false;
-        }
-        throw new RuntimeException("Valor booleano inválido");
-    }
-
-    @Override
-    public Object visitIdAtom(RuParser.IdAtomContext ctx) {
+    public Object visitIdExpr(RuParser.IdExprContext ctx) {
         String varName = ctx.ID().getText();
         if (variables.containsKey(varName)) {
             return variables.get(varName);
@@ -296,18 +272,39 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     }
 
     @Override
-    public Object visitStringAtom(RuParser.StringAtomContext ctx) {
-        String text = ctx.STRING().getText();
-        // Remover comillas y procesar escapes
-        return text.substring(1, text.length() - 1).replace("\"\"", "\"");
+    public Object visitIntExpr(RuParser.IntExprContext ctx) {
+        return Integer.parseInt(ctx.INT().getText());
     }
 
     @Override
-    public Object visitNilAtom(RuParser.NilAtomContext ctx) {
+    public Object visitFloatExpr(RuParser.FloatExprContext ctx) {
+        return Double.parseDouble(ctx.FLOAT().getText());
+    }
+
+    @Override
+    public Object visitStringExpr(RuParser.StringExprContext ctx) {
+        String text = ctx.STRING().getText();
+        // Quitar comillas
+        return text.substring(1, text.length() - 1);
+    }
+
+    @Override
+    public Object visitTrueExpr(RuParser.TrueExprContext ctx) {
+        return true;
+    }
+
+    @Override
+    public Object visitFalseExpr(RuParser.FalseExprContext ctx) {
+        return false;
+    }
+
+    @Override
+    public Object visitNilExpr(RuParser.NilExprContext ctx) {
         return null;
     }
 
-    // Métodos auxiliares
+    // === MÉTODOS AUXILIARES ===
+
     private boolean isTrue(Object obj) {
         if (obj == null) return false;
         if (obj instanceof Boolean) return (Boolean) obj;
@@ -329,7 +326,7 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
     private Object add(Object left, Object right) {
         // Concatenación de strings
         if (left instanceof String || right instanceof String) {
-            return formatValue(left) + formatValue(right);
+            return valueToString(left) + valueToString(right);
         }
 
         // Suma numérica
@@ -385,7 +382,7 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
             }
             return (Integer) left % rightVal;
         }
-        throw new RuntimeException("Operador módulo solo para enteros: " + left + " % " + right);
+        throw new RuntimeException("Operador % solo para enteros");
     }
 
     private int compare(Object left, Object right) {
@@ -413,25 +410,15 @@ public class RuInterpreter extends RuBaseVisitor<Object> {
         return obj instanceof Integer || obj instanceof Double;
     }
 
-    private String formatValue(Object obj) {
+    private String valueToString(Object obj) {
         if (obj == null) return "nil";
         if (obj instanceof String) return (String) obj;
-        if (obj instanceof Boolean) return obj.toString();
-        if (obj instanceof Integer) return obj.toString();
         if (obj instanceof Double) {
-            // Formatear doubles para mostrar enteros sin decimal si es posible
             double d = (Double) obj;
             if (d == Math.floor(d) && Double.isFinite(d)) {
                 return String.valueOf((long) d);
-            } else {
-                return obj.toString();
             }
         }
         return obj.toString();
-    }
-
-    // Método para obtener todas las variables (para debugging)
-    public Map<String, Object> getVariables() {
-        return new HashMap<>(variables);
     }
 }

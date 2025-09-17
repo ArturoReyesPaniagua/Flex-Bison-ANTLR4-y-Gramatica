@@ -1,0 +1,550 @@
+# Respuestas a las Preguntas de la Práctica
+
+## Tarea 4: Traductor en ANTLR para el Lenguaje Ru
+**Universidad Autónoma Metropolitana Cuajimalpa**
+**Dr. Roberto Bernal Jaquez**
+**Alumno: Arturo Reyes Paniagua**
+
+---
+
+## 1. Descripción de Componentes
+
+### 1.1 Analizador Léxico (RuLexer.java)
+
+**Propósito**: Convierte el código fuente en una secuencia de tokens reconocibles.
+
+**Características**:
+- **Tokens de palabras clave**: `var`, `if`, `else`, `while`, `true`, `false`, `nil`, `log`, `imprime`
+- **Tokens de operadores**: `+`, `-`, `*`, `/`, `%`, `^`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`
+- **Tokens de delimitadores**: `;`, `=`, `(`, `)`, `{`, `}`
+- **Tokens de literales**: números enteros, decimales, strings, identificadores
+- **Manejo de comentarios**: Ignora líneas que empiezan con `#`
+- **Manejo de espacios**: Ignora espacios, tabs, saltos de línea
+
+**Funcionamiento**:
+```java
+// Ejemplo de tokenización
+ANTLRInputStream input = new ANTLRInputStream("var x = 10;");
+RuLexer lexer = new RuLexer(input);
+CommonTokenStream tokens = new CommonTokenStream(lexer);
+// Genera tokens: VAR, ID(x), ASIGNA, INT(10), PTOCOMA
+```
+
+### 1.2 Analizador Sintáctico (RuParser.java)
+
+**Propósito**: Construye el Árbol de Sintaxis Abstracta (AST) siguiendo las reglas gramaticales.
+
+**Estructura de la gramática**:
+- **programa** → sentencia* EOF
+- **sentencia** → declaracion | asignacion | imprimir | log | sentencia_if | sentencia_while
+- **expr** → operaciones con precedencia (^, *, /, +, -, <, >, ==, &&, ||)
+
+**Manejo de precedencia**:
+1. `^` (potencia) - asociatividad derecha
+2. `*`, `/`, `%` (multiplicación)
+3. `+`, `-` (suma)
+4. `<`, `>`, `<=`, `>=` (comparación)
+5. `==`, `!=` (igualdad)
+6. `&&` (AND lógico)
+7. `||` (OR lógico)
+
+### 1.3 Clase Base Visitor (RuBaseVisitor.java)
+
+**Propósito**: Proporciona la estructura base para implementar el patrón Visitor.
+
+**Métodos principales**:
+- `visitPrograma()`: Punto de entrada del visitor
+- `visitSentencia()`: Procesa cada tipo de sentencia
+- `visitExpr()`: Maneja expresiones según su tipo
+- `visitTerminos()`: Procesa literales y identificadores
+
+### 1.4 Traductor/Intérprete (MyVisitor.java)
+
+**Propósito**: Implementa la lógica de ejecución del lenguaje Ru.
+
+**Responsabilidades**:
+- **Manejo de variables**: Tabla de símbolos con HashMap
+- **Evaluación de expresiones**: Cálculos aritméticos y lógicos
+- **Control de flujo**: Ejecución de if/else y while
+- **Salida de datos**: Manejo de `imprime` y `log`
+- **Gestión de errores**: Detección y reporte de errores de ejecución
+
+---
+
+## 2. Lista de Clases e Instancias Utilizadas
+
+### 2.1 Clases Principales del Proyecto
+
+| Clase | Tipo | Propósito | Instancias |
+|-------|------|-----------|------------|
+| `GUIRu` | Propia | Interfaz gráfica principal | 1 instancia |
+| `MyVisitor` | Propia | Intérprete del lenguaje Ru | 1 instancia |
+| `RuLexer` | Generada | Analizador léxico | 1 por ejecución |
+| `RuParser` | Generada | Analizador sintáctico | 1 por ejecución |
+| `RuBaseVisitor<T>` | Generada | Clase base del visitor | Heredada |
+
+### 2.2 Clases de ANTLR Runtime
+
+| Clase | Propósito | Uso |
+|-------|-----------|-----|
+| `ANTLRInputStream` | Input stream de ANTLR | Procesar código fuente |
+| `CommonTokenStream` | Stream de tokens | Conectar lexer con parser |
+| `ParseTree` | Árbol de sintaxis | Resultado del parsing |
+| `BaseErrorListener` | Manejo de errores | Capturar errores de sintaxis |
+
+### 2.3 Clases de Java Swing
+
+| Clase | Instancias | Propósito |
+|-------|------------|-----------|
+| `JFrame` | 1 | Ventana principal |
+| `JTextArea` | 2 | Editor de código y área de salida |
+| `JButton` | 4 | Botones de control |
+| `JTextField` | 1 | Campo de archivo |
+| `JScrollPane` | 2 | Scroll para áreas de texto |
+| `JSplitPane` | 1 | División de paneles |
+| `JFileChooser` | Temporal | Selección de archivos |
+
+### 2.4 Estructuras de Datos
+
+| Estructura | Tipo | Uso en MyVisitor |
+|------------|------|------------------|
+| `HashMap<String, Object>` | variables | Tabla de símbolos |
+| `StringBuilder` | output | Buffer de salida |
+| `StringBuilder` | logOutput | Buffer de logs |
+
+---
+
+## 3. Explicación del Flujo Principal (Main)
+
+### 3.1 Flujo de Inicialización
+
+```java
+public static void main(String[] args) {
+    SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+            new GUIRu().setVisible(true);  // 1. Crear GUI
+        }
+    });
+}
+```
+
+**Pasos de inicialización**:
+1. **Crear ventana principal** (`GUIRu`)
+2. **Inicializar componentes** de la interfaz
+3. **Configurar layout** y listeners
+4. **Crear instancia de MyVisitor**
+5. **Mostrar ventana** al usuario
+
+### 3.2 Flujo de Ejecución de Código
+
+```java
+private void executeCode() {
+    // 1. Obtener código del editor
+    String code = codeArea.getText().trim();
+
+    // 2. ANÁLISIS LÉXICO
+    ANTLRInputStream input = new ANTLRInputStream(code);
+    RuLexer lexer = new RuLexer(input);
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+    // 3. ANÁLISIS SINTÁCTICO
+    RuParser parser = new RuParser(tokens);
+    parser.addErrorListener(new BaseErrorListener() { /* manejo errores */ });
+    ParseTree tree = parser.programa();
+
+    // 4. VERIFICACIÓN DE ERRORES
+    if (hayErrores) {
+        mostrarErrores();
+        return;
+    }
+
+    // 5. INTERPRETACIÓN
+    MyVisitor visitor = this.visitor;
+    visitor.visit(tree);
+
+    // 6. MOSTRAR RESULTADOS
+    String output = visitor.getOutput();
+    String logs = visitor.getLogOutput();
+    mostrarResultados(output, logs);
+}
+```
+
+### 3.3 Diagrama de Flujo Detallado
+
+```
+Usuario ingresa código
+         ↓
+    [Análisis Léxico]
+    Código → Tokens
+         ↓
+   [Análisis Sintáctico]
+    Tokens → AST
+         ↓
+    [Verificación]
+    ¿Errores? → Sí → Mostrar errores
+         ↓ No
+   [Interpretación]
+    AST → MyVisitor.visit()
+         ↓
+    [Ejecución]
+    - Manejar variables
+    - Evaluar expresiones
+    - Ejecutar control de flujo
+    - Generar salida
+         ↓
+   [Mostrar Resultados]
+    Salida + Logs en GUI
+```
+
+---
+
+## 4. Implementación de MyVisitor para la Traducción
+
+### 4.1 Estructura de MyVisitor
+
+```java
+public class MyVisitor extends RuBaseVisitor<Object> {
+    // Estado del intérprete
+    private Map<String, Object> variables = new HashMap<>();
+    private StringBuilder output = new StringBuilder();
+    private StringBuilder logOutput = new StringBuilder();
+
+    // Métodos de traducción/interpretación
+    @Override
+    public Object visitPrograma(RuParser.ProgramaContext ctx) { /* ... */ }
+    @Override
+    public Object visitDeclaracion(RuParser.DeclaracionContext ctx) { /* ... */ }
+    // ... más métodos visit
+}
+```
+
+### 4.2 Patrón Visitor Implementado
+
+**Principio**: Cada nodo del AST tiene un método `visit` correspondiente que define cómo procesar ese tipo de nodo.
+
+**Ejemplos de implementación**:
+
+#### Declaración de Variables
+```java
+@Override
+public Object visitDeclaracion(RuParser.DeclaracionContext ctx) {
+    String varName = ctx.ID().getText();        // Obtener nombre
+    Object value = visit(ctx.expr());           // Evaluar expresión
+    variables.put(varName, value);              // Almacenar en tabla
+    return value;                               // Retornar valor
+}
+```
+
+#### Evaluación de Expresiones
+```java
+@Override
+public Object visitAddExpr(RuParser.AddExprContext ctx) {
+    Object left = visit(ctx.expr(0));           // Evaluar lado izquierdo
+    Object right = visit(ctx.expr(1));          // Evaluar lado derecho
+    String op = ctx.op.getText();               // Obtener operador
+
+    switch (op) {
+        case "+": return add(left, right);      // Sumar/concatenar
+        case "-": return subtract(left, right); // Restar
+    }
+}
+```
+
+#### Control de Flujo
+```java
+@Override
+public Object visitSentencia_if(RuParser.Sentencia_ifContext ctx) {
+    Object condition = visit(ctx.expr());       // Evaluar condición
+    if (isTrue(condition)) {
+        return visit(ctx.bloque_if());          // Ejecutar bloque if
+    } else if (ctx.bloque_else() != null) {
+        return visit(ctx.bloque_else());        // Ejecutar bloque else
+    }
+    return null;
+}
+```
+
+### 4.3 Traducción de Tipos de Datos
+
+| Tipo Ru | Tipo Java | Conversión |
+|---------|-----------|------------|
+| `10` | `Integer` | `Integer.parseInt()` |
+| `3.14` | `Double` | `Double.parseDouble()` |
+| `"texto"` | `String` | Remoción de comillas |
+| `true/false` | `Boolean` | Literales booleanas |
+| `nil` | `null` | Valor nulo Java |
+
+### 4.4 Operaciones Implementadas
+
+#### Aritméticas
+- **Suma**: Números + concatenación de strings
+- **Resta/Multiplicación/División**: Solo números
+- **Potencia**: `Math.pow()`
+- **Módulo**: Solo enteros
+
+#### Lógicas
+- **Comparación**: `<`, `>`, `<=`, `>=`, `==`, `!=`
+- **Booleanas**: `&&`, `||`, `!`
+- **Conversión a boolean**: `isTrue()` para diferentes tipos
+
+---
+
+## 5. Manejo de Errores Léxicos/Sintácticos
+
+### 5.1 Errores Léxicos
+
+**Tipos detectados**:
+- Caracteres no reconocidos por la gramática
+- Strings mal formados (sin cerrar comillas)
+- Números con formato inválido
+
+**Implementación**:
+```java
+OTRO : . ;  // En la gramática, captura cualquier carácter no reconocido
+```
+
+**Ejemplo de error**:
+```
+Entrada: var x = @;
+Error: "caracter desconocido: @"
+```
+
+### 5.2 Errores Sintácticos
+
+**Configuración del manejo**:
+```java
+parser.removeErrorListeners();
+parser.addErrorListener(new BaseErrorListener() {
+    @Override
+    public void syntaxError(Recognizer<?, ?> recognizer,
+                          Object offendingSymbol,
+                          int line, int charPositionInLine,
+                          String msg, RecognitionException e) {
+        String error = "ERROR línea " + line + ", pos " + charPositionInLine + ": " + msg;
+        mostrarError(error);
+    }
+});
+```
+
+**Tipos de errores detectados**:
+- Sentencias incompletas: `var x =` (falta valor)
+- Paréntesis/llaves no balanceados: `if (x > 5 { }`
+- Operadores inválidos: `x ++ y`
+- Estructura incorrecta: `if x > 5` (faltan paréntesis)
+
+### 5.3 Errores Semánticos (Tiempo de Ejecución)
+
+**Implementación en MyVisitor**:
+```java
+@Override
+public Object visitIdExpr(RuParser.IdExprContext ctx) {
+    String varName = ctx.ID().getText();
+    if (!variables.containsKey(varName)) {
+        throw new RuntimeException("Variable no definida: " + varName);
+    }
+    return variables.get(varName);
+}
+```
+
+**Tipos detectados**:
+- Variables no declaradas
+- División por cero
+- Operaciones con tipos incompatibles
+- Desbordamiento de operaciones
+
+### 5.4 Presentación de Errores en GUI
+
+```java
+private void mostrarError(String mensaje, Color color) {
+    outputArea.setText("ERROR: " + mensaje);
+    statusLabel.setText("Error durante la ejecución");
+    statusLabel.setForeground(Color.RED);
+}
+```
+
+---
+
+## 6. Programas de Ejemplo que Demuestran Diferentes Casos de Uso
+
+### 6.1 Ejemplo 1: Variables y Operaciones Básicas (ejemplo1.ru)
+
+**Caso de uso**: Declaración de variables, operaciones aritméticas y lógicas.
+
+**Características demostradas**:
+- Declaración con `var`
+- Tipos de datos (int, string)
+- Operadores aritméticos (`+`, `-`, `*`, `/`, `^`)
+- Operadores relacionales (`>`, `==`)
+- Comando `imprime` y `log`
+
+**Código clave**:
+```ruby
+var a = 10;
+var b = 5;
+var suma = a + b;
+var mayor = a > b;
+imprime "Suma: " + a + " + " + b + " = " + suma;
+```
+
+### 6.2 Ejemplo 2: Estructuras de Control (ejemplo2.ru)
+
+**Caso de uso**: Condicionales y bucles.
+
+**Características demostradas**:
+- Condicionales `if/else` anidados
+- Bucles `while`
+- Operadores lógicos (`&&`, `||`)
+- Validaciones con módulo (`%`)
+
+**Código clave**:
+```ruby
+if (edad < 13) {
+    categoria = "Nino";
+} else {
+    if (edad < 18) {
+        categoria = "Adolescente";
+    }
+}
+
+while (contador > 0) {
+    imprime "Cuenta: " + contador;
+    contador = contador - 1;
+}
+```
+
+### 6.3 Ejemplo 3: Algoritmos Matemáticos (ejemplo3.ru)
+
+**Caso de uso**: Implementación de algoritmos complejos con bucles.
+
+**Características demostradas**:
+- Cálculo de factorial
+- Detección de números primos
+- Serie de Fibonacci
+- Búsqueda de máximos
+- Bucles anidados
+
+**Código clave**:
+```ruby
+# Factorial
+var factorial = 1;
+var temp = n;
+while (temp > 1) {
+    factorial = factorial * temp;
+    temp = temp - 1;
+}
+
+# Primos
+while (divisor * divisor <= num) {
+    var residuo = num % divisor;
+    if (residuo == 0) {
+        esPrimo = false;
+    }
+    divisor = divisor + 1;
+}
+```
+
+### 6.4 Ejemplo 4: Manejo de Strings (ejemplo4.ru)
+
+**Caso de uso**: Operaciones con cadenas de texto y validaciones.
+
+**Características demostradas**:
+- Concatenación de strings
+- Validaciones condicionales complejas
+- Formateo de mensajes
+- Simulación de entrada de datos
+
+**Código clave**:
+```ruby
+var nombreFormal = "Sr./Sra. " + nombre;
+var mensaje = "Gracias " + nombre + " de " + ciudad + " por usar nuestro programa.";
+
+if (edad < 0) {
+    validacion = "Edad invalida: no puede ser negativa";
+} else {
+    if (edad > 150) {
+        validacion = "Edad invalida: demasiado alta";
+    } else {
+        validacion = "Edad valida";
+    }
+}
+```
+
+### 6.5 Ejemplo 5: Sistema Completo (ejemplo5.ru)
+
+**Caso de uso**: Programa completo que integra todas las características del lenguaje.
+
+**Características demostradas**:
+- Sistema de calificaciones estudiantiles
+- Múltiples variables y cálculos
+- Estadísticas complejas
+- Análisis de datos
+- Reportes formateados
+- Uso intensivo de todas las estructuras del lenguaje
+
+**Código clave**:
+```ruby
+# Procesamiento de múltiples estudiantes
+var promedio1 = (mat1 + fis1 + prog1) / 3;
+if (promedio1 >= 6) {
+    estado1 = "APROBADO";
+    estudiantesAprobados = estudiantesAprobados + 1;
+}
+
+# Estadísticas generales
+var promedioGeneral = sumaCalificaciones / totalEstudiantes;
+var porcentajeAprobados = (estudiantesAprobados * 100) / totalEstudiantes;
+
+# Análisis comparativo
+if (promedio2 > mejorPromedio) {
+    mejorPromedio = promedio2;
+    mejorNombre = nombre2;
+}
+```
+
+### 6.6 Casos de Uso Cubiertos por los Ejemplos
+
+| Característica | Ejemplo 1 | Ejemplo 2 | Ejemplo 3 | Ejemplo 4 | Ejemplo 5 |
+|----------------|-----------|-----------|-----------|-----------|-----------|
+| Declaración `var` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Operadores aritméticos | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Operadores lógicos | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Condicionales `if/else` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Bucles `while` | - | ✅ | ✅ | - | ✅ |
+| Manejo de strings | ✅ | ✅ | - | ✅ | ✅ |
+| Algoritmos complejos | - | - | ✅ | - | ✅ |
+| Validaciones | - | ✅ | ✅ | ✅ | ✅ |
+| Sistemas completos | - | - | - | - | ✅ |
+
+---
+
+## 7. Conclusiones
+
+### 7.1 Objetivos Cumplidos
+
+✅ **Implementación completa de MyVisitor** usando el patrón Visitor de ANTLR
+✅ **Traductor funcional** que interpreta y ejecuta código en lenguaje Ru
+✅ **Interfaz gráfica intuitiva** para edición y ejecución
+✅ **Manejo robusto de errores** en todas las fases
+✅ **5 ejemplos comprehensivos** que demuestran todas las características
+✅ **Documentación completa** del proyecto
+
+### 7.2 Características Técnicas Destacadas
+
+- **Gramática bien estructurada** con precedencia de operadores correcta
+- **Intérprete eficiente** con manejo de tipos dinámico
+- **Interfaz responsiva** que no bloquea durante la ejecución
+- **Código modular** y bien documentado
+- **Manejo de errores robusto** en todos los niveles
+
+### 7.3 Lecciones Aprendidas
+
+1. **ANTLR4** es una herramienta poderosa para crear traductores
+2. **El patrón Visitor** permite separar la lógica de interpretación de la estructura gramatical
+3. **El manejo de errores** es crucial para una buena experiencia de usuario
+4. **La interfaz gráfica** mejora significativamente la usabilidad del traductor
+5. **Los ejemplos comprehensivos** son esenciales para demostrar las capacidades del lenguaje
+
+---
+
+**Fin del documento de respuestas**

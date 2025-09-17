@@ -24,14 +24,14 @@ public class RuBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements RuV
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitBloque(RuParser.BloqueContext ctx) { return visitChildren(ctx); }
+	@Override public T visitSentencia(RuParser.SentenciaContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitSentencia(RuParser.SentenciaContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDeclaracion(RuParser.DeclaracionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -45,28 +45,7 @@ public class RuBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements RuV
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitSentencia_if(RuParser.Sentencia_ifContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitBloque_condicional(RuParser.Bloque_condicionalContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitBloque_de_sentencia(RuParser.Bloque_de_sentenciaContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitSentencia_while(RuParser.Sentencia_whileContext ctx) { return visitChildren(ctx); }
+	@Override public T visitImprimir(RuParser.ImprimirContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -80,35 +59,49 @@ public class RuBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements RuV
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitImprimir(RuParser.ImprimirContext ctx) { return visitChildren(ctx); }
+	@Override public T visitSentencia_if(RuParser.Sentencia_ifContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitMenosUnarioExpr(RuParser.MenosUnarioExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBloque_if(RuParser.Bloque_ifContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitNotExpr(RuParser.NotExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBloque_else(RuParser.Bloque_elseContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitMultiplicacionExpr(RuParser.MultiplicacionExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitSentencia_while(RuParser.Sentencia_whileContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitAtomExpr(RuParser.AtomExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBloque_while(RuParser.Bloque_whileContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitIntExpr(RuParser.IntExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitTrueExpr(RuParser.TrueExprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -122,35 +115,21 @@ public class RuBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements RuV
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitPowExpr(RuParser.PowExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitNilExpr(RuParser.NilExprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIgualdadExpr(RuParser.IgualdadExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitMultExpr(RuParser.MultExprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitRelacionalExpr(RuParser.RelacionalExprContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitAditivaExpr(RuParser.AditivaExprContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitAndExpr(RuParser.AndExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStringExpr(RuParser.StringExprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -164,33 +143,68 @@ public class RuBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements RuV
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitNumberAtom(RuParser.NumberAtomContext ctx) { return visitChildren(ctx); }
+	@Override public T visitFloatExpr(RuParser.FloatExprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitBooleanAtom(RuParser.BooleanAtomContext ctx) { return visitChildren(ctx); }
+	@Override public T visitNotExpr(RuParser.NotExprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIdAtom(RuParser.IdAtomContext ctx) { return visitChildren(ctx); }
+	@Override public T visitAddExpr(RuParser.AddExprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitStringAtom(RuParser.StringAtomContext ctx) { return visitChildren(ctx); }
+	@Override public T visitMenosUnarioExpr(RuParser.MenosUnarioExprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitNilAtom(RuParser.NilAtomContext ctx) { return visitChildren(ctx); }
+	@Override public T visitCompExpr(RuParser.CompExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitFalseExpr(RuParser.FalseExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitPowExpr(RuParser.PowExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitIdExpr(RuParser.IdExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitEqualExpr(RuParser.EqualExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitAndExpr(RuParser.AndExprContext ctx) { return visitChildren(ctx); }
 }

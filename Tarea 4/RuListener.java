@@ -17,16 +17,6 @@ public interface RuListener extends ParseTreeListener {
 	 */
 	void exitPrograma(RuParser.ProgramaContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RuParser#bloque}.
-	 * @param ctx the parse tree
-	 */
-	void enterBloque(RuParser.BloqueContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RuParser#bloque}.
-	 * @param ctx the parse tree
-	 */
-	void exitBloque(RuParser.BloqueContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link RuParser#sentencia}.
 	 * @param ctx the parse tree
 	 */
@@ -36,6 +26,16 @@ public interface RuListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSentencia(RuParser.SentenciaContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RuParser#declaracion}.
+	 * @param ctx the parse tree
+	 */
+	void enterDeclaracion(RuParser.DeclaracionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuParser#declaracion}.
+	 * @param ctx the parse tree
+	 */
+	void exitDeclaracion(RuParser.DeclaracionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RuParser#asignacion}.
 	 * @param ctx the parse tree
@@ -47,45 +47,15 @@ public interface RuListener extends ParseTreeListener {
 	 */
 	void exitAsignacion(RuParser.AsignacionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RuParser#sentencia_if}.
+	 * Enter a parse tree produced by {@link RuParser#imprimir}.
 	 * @param ctx the parse tree
 	 */
-	void enterSentencia_if(RuParser.Sentencia_ifContext ctx);
+	void enterImprimir(RuParser.ImprimirContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link RuParser#sentencia_if}.
+	 * Exit a parse tree produced by {@link RuParser#imprimir}.
 	 * @param ctx the parse tree
 	 */
-	void exitSentencia_if(RuParser.Sentencia_ifContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RuParser#bloque_condicional}.
-	 * @param ctx the parse tree
-	 */
-	void enterBloque_condicional(RuParser.Bloque_condicionalContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RuParser#bloque_condicional}.
-	 * @param ctx the parse tree
-	 */
-	void exitBloque_condicional(RuParser.Bloque_condicionalContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RuParser#bloque_de_sentencia}.
-	 * @param ctx the parse tree
-	 */
-	void enterBloque_de_sentencia(RuParser.Bloque_de_sentenciaContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RuParser#bloque_de_sentencia}.
-	 * @param ctx the parse tree
-	 */
-	void exitBloque_de_sentencia(RuParser.Bloque_de_sentenciaContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RuParser#sentencia_while}.
-	 * @param ctx the parse tree
-	 */
-	void enterSentencia_while(RuParser.Sentencia_whileContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RuParser#sentencia_while}.
-	 * @param ctx the parse tree
-	 */
-	void exitSentencia_while(RuParser.Sentencia_whileContext ctx);
+	void exitImprimir(RuParser.ImprimirContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RuParser#log}.
 	 * @param ctx the parse tree
@@ -97,63 +67,79 @@ public interface RuListener extends ParseTreeListener {
 	 */
 	void exitLog(RuParser.LogContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RuParser#imprimir}.
+	 * Enter a parse tree produced by {@link RuParser#sentencia_if}.
 	 * @param ctx the parse tree
 	 */
-	void enterImprimir(RuParser.ImprimirContext ctx);
+	void enterSentencia_if(RuParser.Sentencia_ifContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link RuParser#imprimir}.
+	 * Exit a parse tree produced by {@link RuParser#sentencia_if}.
 	 * @param ctx the parse tree
 	 */
-	void exitImprimir(RuParser.ImprimirContext ctx);
+	void exitSentencia_if(RuParser.Sentencia_ifContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code MenosUnarioExpr}
+	 * Enter a parse tree produced by {@link RuParser#bloque_if}.
+	 * @param ctx the parse tree
+	 */
+	void enterBloque_if(RuParser.Bloque_ifContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuParser#bloque_if}.
+	 * @param ctx the parse tree
+	 */
+	void exitBloque_if(RuParser.Bloque_ifContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RuParser#bloque_else}.
+	 * @param ctx the parse tree
+	 */
+	void enterBloque_else(RuParser.Bloque_elseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuParser#bloque_else}.
+	 * @param ctx the parse tree
+	 */
+	void exitBloque_else(RuParser.Bloque_elseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RuParser#sentencia_while}.
+	 * @param ctx the parse tree
+	 */
+	void enterSentencia_while(RuParser.Sentencia_whileContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuParser#sentencia_while}.
+	 * @param ctx the parse tree
+	 */
+	void exitSentencia_while(RuParser.Sentencia_whileContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RuParser#bloque_while}.
+	 * @param ctx the parse tree
+	 */
+	void enterBloque_while(RuParser.Bloque_whileContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuParser#bloque_while}.
+	 * @param ctx the parse tree
+	 */
+	void exitBloque_while(RuParser.Bloque_whileContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code intExpr}
 	 * labeled alternative in {@link RuParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterMenosUnarioExpr(RuParser.MenosUnarioExprContext ctx);
+	void enterIntExpr(RuParser.IntExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code MenosUnarioExpr}
+	 * Exit a parse tree produced by the {@code intExpr}
 	 * labeled alternative in {@link RuParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitMenosUnarioExpr(RuParser.MenosUnarioExprContext ctx);
+	void exitIntExpr(RuParser.IntExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code notExpr}
+	 * Enter a parse tree produced by the {@code trueExpr}
 	 * labeled alternative in {@link RuParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterNotExpr(RuParser.NotExprContext ctx);
+	void enterTrueExpr(RuParser.TrueExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code notExpr}
+	 * Exit a parse tree produced by the {@code trueExpr}
 	 * labeled alternative in {@link RuParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitNotExpr(RuParser.NotExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code multiplicacionExpr}
-	 * labeled alternative in {@link RuParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterMultiplicacionExpr(RuParser.MultiplicacionExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code multiplicacionExpr}
-	 * labeled alternative in {@link RuParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitMultiplicacionExpr(RuParser.MultiplicacionExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code atomExpr}
-	 * labeled alternative in {@link RuParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterAtomExpr(RuParser.AtomExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code atomExpr}
-	 * labeled alternative in {@link RuParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitAtomExpr(RuParser.AtomExprContext ctx);
+	void exitTrueExpr(RuParser.TrueExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code orExpr}
 	 * labeled alternative in {@link RuParser#expr}.
@@ -167,6 +153,126 @@ public interface RuListener extends ParseTreeListener {
 	 */
 	void exitOrExpr(RuParser.OrExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code nilExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterNilExpr(RuParser.NilExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code nilExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitNilExpr(RuParser.NilExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code multExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterMultExpr(RuParser.MultExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code multExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitMultExpr(RuParser.MultExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code stringExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterStringExpr(RuParser.StringExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code stringExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitStringExpr(RuParser.StringExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code parExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterParExpr(RuParser.ParExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code parExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitParExpr(RuParser.ParExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code floatExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterFloatExpr(RuParser.FloatExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code floatExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitFloatExpr(RuParser.FloatExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code notExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterNotExpr(RuParser.NotExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code notExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitNotExpr(RuParser.NotExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code addExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterAddExpr(RuParser.AddExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code addExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitAddExpr(RuParser.AddExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code menosUnarioExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterMenosUnarioExpr(RuParser.MenosUnarioExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code menosUnarioExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitMenosUnarioExpr(RuParser.MenosUnarioExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code compExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterCompExpr(RuParser.CompExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code compExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitCompExpr(RuParser.CompExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code falseExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterFalseExpr(RuParser.FalseExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code falseExpr}
+	 * labeled alternative in {@link RuParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitFalseExpr(RuParser.FalseExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code powExpr}
 	 * labeled alternative in {@link RuParser#expr}.
 	 * @param ctx the parse tree
@@ -179,41 +285,29 @@ public interface RuListener extends ParseTreeListener {
 	 */
 	void exitPowExpr(RuParser.PowExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code igualdadExpr}
+	 * Enter a parse tree produced by the {@code idExpr}
 	 * labeled alternative in {@link RuParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterIgualdadExpr(RuParser.IgualdadExprContext ctx);
+	void enterIdExpr(RuParser.IdExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code igualdadExpr}
+	 * Exit a parse tree produced by the {@code idExpr}
 	 * labeled alternative in {@link RuParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitIgualdadExpr(RuParser.IgualdadExprContext ctx);
+	void exitIdExpr(RuParser.IdExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code relacionalExpr}
+	 * Enter a parse tree produced by the {@code equalExpr}
 	 * labeled alternative in {@link RuParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterRelacionalExpr(RuParser.RelacionalExprContext ctx);
+	void enterEqualExpr(RuParser.EqualExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code relacionalExpr}
+	 * Exit a parse tree produced by the {@code equalExpr}
 	 * labeled alternative in {@link RuParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitRelacionalExpr(RuParser.RelacionalExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code aditivaExpr}
-	 * labeled alternative in {@link RuParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterAditivaExpr(RuParser.AditivaExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code aditivaExpr}
-	 * labeled alternative in {@link RuParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitAditivaExpr(RuParser.AditivaExprContext ctx);
+	void exitEqualExpr(RuParser.EqualExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code andExpr}
 	 * labeled alternative in {@link RuParser#expr}.
@@ -226,76 +320,4 @@ public interface RuListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAndExpr(RuParser.AndExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code parExpr}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void enterParExpr(RuParser.ParExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code parExpr}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void exitParExpr(RuParser.ParExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code numberAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void enterNumberAtom(RuParser.NumberAtomContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code numberAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void exitNumberAtom(RuParser.NumberAtomContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code booleanAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void enterBooleanAtom(RuParser.BooleanAtomContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code booleanAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void exitBooleanAtom(RuParser.BooleanAtomContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code idAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void enterIdAtom(RuParser.IdAtomContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code idAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void exitIdAtom(RuParser.IdAtomContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code stringAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void enterStringAtom(RuParser.StringAtomContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code stringAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void exitStringAtom(RuParser.StringAtomContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code nilAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void enterNilAtom(RuParser.NilAtomContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code nilAtom}
-	 * labeled alternative in {@link RuParser#atomo}.
-	 * @param ctx the parse tree
-	 */
-	void exitNilAtom(RuParser.NilAtomContext ctx);
 }

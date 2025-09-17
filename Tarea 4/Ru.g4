@@ -1,74 +1,87 @@
 grammar Ru;
 
 programa
- : bloque EOF
- ;
-
-bloque
- : sentencia*
+ : sentencia* EOF
  ;
 
 sentencia
- : asignacion
+ : declaracion
+ | asignacion
+ | imprimir
+ | log
  | sentencia_if
  | sentencia_while
- | log
- | imprimir
  | OTRO {System.err.println("caracter desconocido: " + $OTRO.text);}
+ ;
+
+declaracion
+ : VAR ID ASIGNA expr PTOCOMA
  ;
 
 asignacion
  : ID ASIGNA expr PTOCOMA
  ;
 
-sentencia_if
- : IF bloque_condicional (ELSE IF bloque_condicional)* (ELSE bloque_de_sentencia)?
- ;
-
-bloque_condicional
- : APAR expr CPAR bloque_de_sentencia
- ;
-
-bloque_de_sentencia
- : ALLAVE bloque CLLAVE
- | sentencia
- ;
-
-sentencia_while
- : WHILE expr bloque_de_sentencia
+imprimir
+ : IMPRIMIR expr PTOCOMA
  ;
 
 log
  : LOG expr PTOCOMA
  ;
 
-imprimir
-: IMPRIMIR expr PTOCOMA
-;
+sentencia_if
+ : IF APAR expr CPAR bloque_if (ELSE bloque_else)?
+ ;
 
+bloque_if
+ : ALLAVE sentencia* CLLAVE
+ ;
+
+bloque_else
+ : ALLAVE sentencia* CLLAVE
+ ;
+
+sentencia_while
+ : WHILE APAR expr CPAR bloque_while
+ ;
+
+bloque_while
+ : ALLAVE sentencia* CLLAVE
+ ;
 
 expr
- : expr POW<assoc=right> expr                      #powExpr
- | MENOS expr                                      #MenosUnarioExpr
- | NOT expr                                        #notExpr
- | expr op=(MULT | DIV | MOD) expr                 #multiplicacionExpr
- | expr op=(MAS | MENOS) expr                      #aditivaExpr
- | expr op=(MAYIG | MENIG | MENORQ | MAYORQ) expr  #relacionalExpr
- | expr op=(IGUAL | DIFQ) expr                     #igualdadExpr
- | expr AND expr                                   #andExpr
- | expr OR expr                                    #orExpr
- | atomo                                            #atomExpr
+ : expr POW<assoc=right> expr           #powExpr
+ | MENOS expr                           #menosUnarioExpr
+ | NOT expr                             #notExpr
+ | expr op=(MULT | DIV | MOD) expr      #multExpr
+ | expr op=(MAS | MENOS) expr           #addExpr
+ | expr op=(MAYORQ | MENORQ | MAYIG | MENIG) expr #compExpr
+ | expr op=(IGUAL | DIFQ) expr          #equalExpr
+ | expr AND expr                        #andExpr
+ | expr OR expr                         #orExpr
+ | APAR expr CPAR                       #parExpr
+ | ID                                   #idExpr
+ | INT                                  #intExpr
+ | FLOAT                                #floatExpr
+ | STRING                               #stringExpr
+ | TRUE                                 #trueExpr
+ | FALSE                                #falseExpr
+ | NIL                                  #nilExpr
  ;
 
-atomo
- : APAR expr CPAR #parExpr
- | (INT | FLOAT)  #numberAtom
- | (TRUE | FALSE) #booleanAtom
- | ID             #idAtom
- | STRING         #stringAtom
- | NIL            #nilAtom
- ;
+// Palabras clave
+VAR : 'var';
+IF : 'if';
+ELSE : 'else';
+WHILE : 'while';
+TRUE : 'true';
+FALSE : 'false';
+NIL : 'nil';
+LOG : 'log';
+IMPRIMIR : 'imprime';
 
+// Operadores
 OR : '||';
 AND : '&&';
 IGUAL : '==';
@@ -85,6 +98,7 @@ MOD : '%';
 POW : '^';
 NOT : '!';
 
+// Delimitadores
 PTOCOMA : ';';
 ASIGNA : '=';
 APAR : '(';
@@ -92,38 +106,13 @@ CPAR : ')';
 ALLAVE : '{';
 CLLAVE : '}';
 
-TRUE : 'true';
-FALSE : 'false';
-NIL : 'nil';
-IF : 'if';
-ELSE : 'else';
-WHILE : 'while';
-LOG : 'log';
+// Literales
+ID : [a-zA-Z_] [a-zA-Z_0-9]* ;
+INT : [0-9]+ ;
+FLOAT : [0-9]+ '.' [0-9]* | '.' [0-9]+ ;
+STRING : '"' (~["\r\n] | '""')* '"' ;
 
-IMPRIMIR : 'imprime';
-
-ID
- : [a-zA-Z_] [a-zA-Z_0-9]*
- ;
-
-INT
- : [0-9]+
- ;
-
-FLOAT
- : [0-9]+ '.' [0-9]*
- | '.' [0-9]+
- ;
-
-STRING
- : '"' (~["\r\n] | '""')* '"'
- ;
-COMENTARIO
- : '#' ~[\r\n]* -> skip
- ;
-ESPACIO
- : [ \t\r\n] -> skip
- ;
-OTRO
- : .
- ;
+// Ignorar
+COMENTARIO : '#' ~[\r\n]* -> skip ;
+ESPACIO : [ \t\r\n] -> skip ;
+OTRO : . ;
