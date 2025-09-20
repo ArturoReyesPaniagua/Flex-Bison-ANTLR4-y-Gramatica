@@ -4,15 +4,15 @@
 [![ANTLR](https://img.shields.io/badge/ANTLR-4.x-blue.svg)](https://www.antlr.org/)
 [![License](https://img.shields.io/badge/License-Academic-green.svg)](LICENSE)
 
-## 📋 Descripción
+## Descripción
 
 Traductor completo para el lenguaje de programación **Ru** desarrollado como parte de la práctica de **Traductores de Lenguajes de Programación** en la **Universidad Autónoma Metropolitana Cuajimalpa**.
 
 El proyecto implementa un intérprete usando **ANTLR4** con el patrón **Visitor** para procesar y ejecutar código escrito en el lenguaje Ru, proporcionando una interfaz gráfica amigable para la edición y ejecución de programas.
 
-## ✨ Características Principales
+## Características Principales
 
-### 🎯 Lenguaje Ru
+### Lenguaje Ru
 - **Declaración de variables** con `var`
 - **Tipos de datos**: enteros, decimales, strings, booleanos, nil
 - **Operadores aritméticos**: `+`, `-`, `*`, `/`, `%`, `^`
@@ -22,7 +22,7 @@ El proyecto implementa un intérprete usando **ANTLR4** con el patrón **Visitor
 - **Entrada/salida**: `imprime`, `log`
 - **Comentarios** con `#`
 
-### 🖥️ Interfaz Gráfica
+### Interfaz Gráfica
 - **Editor de código** con sintaxis clara
 - **Ejecución en tiempo real**
 - **Visualización de resultados** separada (salida + logs)
@@ -30,13 +30,13 @@ El proyecto implementa un intérprete usando **ANTLR4** con el patrón **Visitor
 - **Manejo de errores** visual
 - **Atajos de teclado** (Ctrl+Enter para ejecutar)
 
-### ⚙️ Arquitectura Técnica
+### Arquitectura Técnica
 - **Analizador léxico y sintáctico** generado con ANTLR4
 - **Intérprete** implementado con patrón Visitor (`MyVisitor`)
 - **Manejo robusto de errores** léxicos y sintácticos
 - **Interfaz gráfica** desarrollada en Java Swing
 
-## 🚀 Instalación y Uso
+## Instalación y Uso
 
 ### Prerrequisitos
 - **Java JDK 8** o superior
@@ -106,7 +106,7 @@ traductor-ru/
     └── *.tokens           # Archivos de tokens
 ```
 
-## 💻 Uso de la Aplicación
+## Uso de la Aplicación
 
 ### Interfaz Principal
 1. **Panel izquierdo**: Editor de código Ru
@@ -143,7 +143,7 @@ while (contador <= 3) {
 }
 ```
 
-## 📚 Ejemplos Incluidos
+## Ejemplos Incluidos
 
 | Archivo | Descripción | Características |
 |---------|-------------|-----------------|
@@ -153,7 +153,7 @@ while (contador <= 3) {
 | `ejemplo4.ru` | Manejo de strings | Concatenación, validaciones, formateo |
 | `ejemplo5.ru` | Sistema de calificaciones | Programa complejo integrando todas las características |
 
-## 🛠️ Componentes Técnicos
+## Componentes Técnicos
 
 ### Analizador Léxico (RuLexer)
 - Reconoce **tokens** del lenguaje Ru
@@ -200,27 +200,18 @@ java -cp ".:antlr-4.x.x-complete.jar" GUIRu
 - Asegurar que los bloques `if/while` usen llaves `{}`
 - Revisar que las strings estén entre comillas `""`
 
-## 📖 Documentación Adicional
+## Documentación Adicional
 
 - **[LEEME.txt](LEEME.txt)**: Instrucciones detalladas de compilación y uso
 - **[preguntas.md](preguntas.md)**: Respuestas a las preguntas de la práctica
 - **[Gramática Ru.g4](Ru.g4)**: Especificación completa del lenguaje
 
-## 🎓 Información Académica
+## Información Académica
 
 **Universidad**: Universidad Autónoma Metropolitana Cuajimalpa  
 **Materia**: Traductores de Lenguajes de Programación  
 **Profesor**: Dr. Roberto Bernal Jaquez  
 **Práctica**: Tarea 4 - Traductor en ANTLR para el Lenguaje Ru
 
-## 📝 Licencia
-
-Este proyecto es desarrollado con fines académicos para la UAM Cuajimalpa.
-
-## 🤝 Contribuciones
-
-Este es un proyecto académico. Para sugerencias o reportes de errores, contacta a los desarrolladores del equipo.
-
----
 
 **Desarrollado con ❤️ para UAM Cuajimalpa**

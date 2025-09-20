@@ -522,12 +522,12 @@ if (promedio2 > mejorPromedio) {
 
 ### 7.1 Objetivos Cumplidos
 
-✅ **Implementación completa de MyVisitor** usando el patrón Visitor de ANTLR
-✅ **Traductor funcional** que interpreta y ejecuta código en lenguaje Ru
-✅ **Interfaz gráfica intuitiva** para edición y ejecución
-✅ **Manejo robusto de errores** en todas las fases
-✅ **5 ejemplos comprehensivos** que demuestran todas las características
-✅ **Documentación completa** del proyecto
+**Implementación completa de MyVisitor** usando el patrón Visitor de ANTLR
+**Traductor funcional** que interpreta y ejecuta código en lenguaje Ru
+**Interfaz gráfica intuitiva** para edición y ejecución
+**Manejo robusto de errores** en todas las fases
+**5 ejemplos comprehensivos** que demuestran todas las características
+**Documentación completa** del proyecto
 
 ### 7.2 Características Técnicas Destacadas
 
